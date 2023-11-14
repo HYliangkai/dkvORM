@@ -1,0 +1,15 @@
+{
+  "deno.enable": true,
+  "deno.unstable": true,
+  "deno.cache": "./cache/",
+  "deno.config": "./deno.jsonc",
+  "editor.formatOnSave": true,
+  "deno.lint": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "deno.jsonc": ".gitignore, .gitmodules,package-lock.json,package.json,pnpm-lock.yaml"
+  },
+}

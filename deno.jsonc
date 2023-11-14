@@ -1,0 +1,27 @@
+{
+  "tasks": {
+    "dev": "deno run -A --unstable main.ts",
+    "watch": "deno run -A --unstable --watch main.ts"
+  },
+  "fmt": {
+    "options": {
+      "semiColons": false, //末尾不加分号
+      "singleQuote": true, //使用单引号替代双引号
+      "indentWidth": 2 //间距为2
+    }
+  },
+  //配置语法校验规则
+  "lint": {
+    "files": {
+      "include": [
+        "src/"
+      ]
+    }
+  },
+  //依赖导入处理,可以实现本地程序或外部链接的导入映射(原生层面)
+  "imports": {
+    "@/": "./src/",         /* @/ 表示src目录            */
+    "lib": "./lib/mod.ts", /* lib 表示需要公共导出的模块 */
+    "dep": "./lib/dep.ts" /* dep 表示供内部导出的模块   */
+  }
+}
