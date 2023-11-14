@@ -13,6 +13,4 @@ export class Schema<S extends zod.Schema> {
     if (res.success) return Ok(res.data)
     return SchemaParseError.new(res.error.message, Some(res.error))
   }
-
-  
 }

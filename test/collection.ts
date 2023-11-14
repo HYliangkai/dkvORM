@@ -3,14 +3,7 @@ import {zod} from 'dep'
 import {assertEquals, init_kv} from './mod.ts'
 
 Deno.test('test-insert', async () => {
-  const {kv, db} = await init_kv()
-  const schema = new Schema(
-    zod.object({
-      name: zod.string(),
-      age: zod.number(),
-    })
-  )
-  const coll = new Collection(db, 'testcoll', schema)
+  const {kv, coll} = await init_kv()
 
   /* test1 */
   const res = await coll.insert({value: {name: 'jiojio', age: 18}})
@@ -27,15 +20,8 @@ Deno.test('test-insert', async () => {
 })
 
 Deno.test('test-remove', async () => {
-  const {kv, db} = await init_kv()
-  const schema = new Schema(
-    zod.object({
-      name: zod.string(),
-      age: zod.number(),
-    })
-  )
+  const {kv, coll} = await init_kv()
 
-  const coll = new Collection(db, 'testcoll', schema)
   const res = await coll.insert({value: {name: 'jiojio', age: 18}})
   const key = res.unwarp()
 
@@ -45,17 +31,9 @@ Deno.test('test-remove', async () => {
 })
 
 Deno.test('test-get', async () => {
-  const {kv, db} = await init_kv()
+  const {kv, coll} = await init_kv()
 
-  const schema = new Schema(
-    zod.object({
-      name: zod.string(),
-      age: zod.number(),
-      address: zod.string(),
-    })
-  )
-  const coll = new Collection(db, 'testcoll', schema)
-  const res = await coll.insert({value: {name: 'jiojio', age: 18, address: 'beijing'}})
+  const res = await coll.insert({value: {name: 'jiojio', age: 18}})
   const key = res.unwarp()
 
   const rres = await coll.get(key)
@@ -65,17 +43,9 @@ Deno.test('test-get', async () => {
 })
 
 Deno.test('test-rob', async () => {
-  const {kv, db} = await init_kv()
+  const {kv, coll} = await init_kv()
   let index = 0
   await new Promise(reso => {
-    const schema = new Schema(
-      zod.object({
-        name: zod.string(),
-        age: zod.number(),
-        address: zod.string(),
-      })
-    )
-    const coll = new Collection(db, 'testcoll', schema)
     const obs = coll.observable_list()
     obs.subscribe({
       next(val) {
@@ -90,18 +60,10 @@ Deno.test('test-rob', async () => {
 })
 
 Deno.test('test-enqueue', async () => {
-  const {db, kv} = await init_kv()
-  const schema = new Schema(
-    zod.object({
-      name: zod.string(),
-      age: zod.number(),
-      address: zod.string(),
-    })
-  )
-  const coll = new Collection(db, 'testcoll', schema)
+  const {coll, kv} = await init_kv()
   coll.add_event_listener('insert', val => {
     console.log('接收插入', val.timestamp)
   })
-  await coll.insert({primary_key: 'niga', value: {name: 'dio', age: 18, address: '息屏'}})
+  await coll.insert({primary_key: 'niga', value: {name: 'dio', age: 18}})
   kv.close()
 })

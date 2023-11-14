@@ -112,6 +112,7 @@ export class Collection<D extends string, C extends string, S extends zod.Schema
     },
     options: {
       overload: boolean /* 是否覆盖原有数据,默认为true; */
+      lifetime?: number /** 数据到期时间 */
     } = {overload: true}
   ): AsyncResult<string, SchemaParseError | DataExistError> {
     const pk = info.primary_key || ulid()
@@ -123,7 +124,7 @@ export class Collection<D extends string, C extends string, S extends zod.Schema
     try {
       this.shema.validate(info.value).unwarp()
       this.dispatch('insert', {prefix: piefix, value: info.value, timestamp: Date.now()})
-      await this.db.kv.set(piefix, info.value)
+      await this.db.kv.set(piefix, info.value, {expireIn: options?.lifetime})
       return Ok(pk)
     } catch (e) {
       return e
@@ -151,7 +152,10 @@ export class Collection<D extends string, C extends string, S extends zod.Schema
    */
   async update(
     primary_key: string,
-    value: SchemaType<S>
+    value: SchemaType<S>,
+    options?: {
+      lifetime?: number /** 数据到期时间 */
+    }
   ): AsyncResult<string, SchemaParseError | NoDataError> {
     const piefix: [string, string, string] = [this.db.name, this.name, primary_key]
     {
@@ -161,7 +165,7 @@ export class Collection<D extends string, C extends string, S extends zod.Schema
     try {
       this.shema.validate(value).unwarp()
       this.dispatch('update', {prefix: piefix, value: value, timestamp: Date.now()})
-      await this.db.kv.set(piefix, value)
+      await this.db.kv.set(piefix, value, {expireIn: options?.lifetime})
       return Ok(primary_key)
     } catch (e) {
       return e
@@ -194,6 +198,9 @@ export class Collection<D extends string, C extends string, S extends zod.Schema
       })()
     })
   }
+
+  /** can get value by Secondary index */
+  get_value_by(key: keyof SchemaType<S>) {}
 
   // /** find condition进行筛选 */
   // async list_for(

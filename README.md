@@ -6,16 +6,18 @@
 
 1. setup env , to save the log file
 ```.env
+
 DATABASE_LOGS_DIR="Absolute path"
 ```
 2. start to use
 ```ts
+  export {zod} from 'https://deno.land/x/fp_system@0.x/mod.ts'
   const kv = await Deno.openKv()
   /** init dataBase */
   const db = new DataBase(kv, 'testdb')
   /** create a schema */
   const schema = new Schema(
-    zod.object({
+    zod.object({ 
       name: zod.string(),
       age: zod.number(),
     })
