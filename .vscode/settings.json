@@ -10,6 +10,6 @@
   },
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
-    "deno.jsonc": ".gitignore, .gitmodules,package-lock.json,package.json,pnpm-lock.yaml"
+    "deno.jsonc": ".gitignore, .gitmodules,package-lock.json,package.json,pnpm-lock.yaml,"
   },
 }

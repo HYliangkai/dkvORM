@@ -1,5 +1,5 @@
-import {Err, Ok, Result, Some, zod} from 'dep'
-import {SchemaParseError, SchemaType} from 'lib'
+import {Err, Ok, Result, Some, zod} from '../dep.ts'
+import {SchemaParseError, SchemaType} from '../mod.ts'
 
 export class Schema<S extends zod.Schema> {
   private readonly schema: S

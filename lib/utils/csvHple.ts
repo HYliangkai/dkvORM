@@ -1,5 +1,5 @@
-import {CSV, Ok, Path} from 'dep'
-import {CSVValue, IOError} from 'lib'
+import {CSV, Ok, Path} from '../dep.ts'
+import {CSVValue, IOError} from '../mod.ts'
 
 export const numm = null
 

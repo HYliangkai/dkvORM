@@ -1,5 +1,13 @@
-import {AsyncResult, CSVValue, Collection, IOError, UnknownError, insert_csv, resume_csv} from 'lib'
-import {None, Ok, Option, Some, zod} from 'dep'
+import {
+  AsyncResult,
+  CSVValue,
+  Collection,
+  IOError,
+  UnknownError,
+  insert_csv,
+  resume_csv,
+} from '../mod.ts'
+import {None, Ok, Option, Some, zod} from '../dep.ts'
 
 /** 数据库datebase */
 export class DataBase<D extends string> {
@@ -31,7 +39,7 @@ export class DataBase<D extends string> {
     return this.log_base ? await insert_csv(this.log_base.unwarp(), prefix, value) : null
   }
 
-  /** 恢复数据 */
+  /** 恢复csv数据 */
   async resume(coll_name: string): AsyncResult<void, IOError> {
     try {
       const base = this.log_base.unwarp()

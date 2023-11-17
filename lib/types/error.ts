@@ -1,5 +1,6 @@
-import {Err, None, Option} from 'dep'
+import {Err, None, Option} from '../dep.ts'
 
+/**@interface 用户自定义的错误类型 */
 export interface CustomError {
   readonly desc: string
   info: Option<any>
@@ -10,6 +11,7 @@ export interface CustomError {
 //////        未知错误              //////
 //////                             //////
 /////////////////////////////////////////
+/** UnknownError */
 export class UnknownError implements CustomError {
   readonly desc: string
   info: Option<any>
@@ -28,6 +30,7 @@ export class UnknownError implements CustomError {
 //////        schema验证错误       //////
 //////                            //////
 ////////////////////////////////////////
+/** schema验证错误 */
 export class SchemaParseError implements CustomError {
   readonly desc: string
   info: Option<any>
@@ -45,6 +48,8 @@ export class SchemaParseError implements CustomError {
 //////        数据已经存在         //////
 //////                            //////
 ////////////////////////////////////////
+/** 数据已经存在 */
+
 export class DataExistError implements CustomError {
   readonly desc: string
   info: Option<any>
@@ -63,6 +68,7 @@ export class DataExistError implements CustomError {
 //////        数据不存在           //////
 //////                            //////
 ////////////////////////////////////////
+/** 数据不存在 */
 export class NoDataError implements CustomError {
   desc: string
   info: Option<any>
@@ -77,6 +83,7 @@ export class NoDataError implements CustomError {
   }
 }
 
+/** IO读写错误 */
 export class IOError implements CustomError {
   desc: string
   info: Option<any>

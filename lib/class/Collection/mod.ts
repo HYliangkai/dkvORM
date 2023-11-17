@@ -1,7 +1,8 @@
-import {Def, Ok, match, rjx, ulid, zod} from 'dep'
+import {Def, Ok, match, rjx, ulid, zod} from '../../dep.ts'
 import {
   AsyncResult,
   CollDispatchVal,
+  CollEnqueueType,
   DataBase,
   DataExistError,
   NoDataError,
@@ -11,7 +12,8 @@ import {
   SchemaType,
   Ulid,
   UnknownError,
-} from 'lib'
+} from '../../mod.ts'
+import {add_event_listener, add_log_hook, dispatch, remove_event_listener} from './enqueue.ts'
 
 /** database --> collection */
 export class Collection<D extends string, C extends string, S extends zod.Schema> {
@@ -31,72 +33,60 @@ export class Collection<D extends string, C extends string, S extends zod.Schema
     this.remove_enqueue = []
     this.update_enqueue = []
 
-    {
-      const add_log_hook = (
-        name: 'insert_enqueue' | 'remove_enqueue' | 'update_enqueue',
-        type: 'set' | 'delete'
-      ) => {
-        this[name].push((info: CollDispatchVal<S>) => {
-          const piefix = info.prefix
-          this.db.log_hook([piefix[0], piefix[1]], [{type, key: piefix[2], value: info.value}])
-        })
-      }
-      add_log_hook('insert_enqueue', 'set')
-      add_log_hook('update_enqueue', 'set')
-      add_log_hook('remove_enqueue', 'delete')
-    }
+    add_log_hook(this)
   }
 
   /** @enqueue */
 
-  add_event_listener(
-    type: 'insert' | 'remove' | 'update',
-    handler: (value: CollDispatchVal<S>) => any
-  ) {
-    match(
-      type,
-      ['insert', () => this.insert_enqueue.push(handler)],
-      ['remove', () => this.remove_enqueue.push(handler)],
-      ['update', () => this.update_enqueue.push(handler)],
-      [Def, () => {}]
-    )()
+  /**
+  ## add event listener 
+  ### Example:
+  ```ts
+  const db = new DataBase('test')
+  const coll = db.create_collection('test', zod.string())
+  coll.add_event_listener('insert', (value) => {
+    console.log(value)
+  })
+  ```
+  */
+  add_event_listener(type: CollEnqueueType, handler: (value: CollDispatchVal<S>) => any) {
+    add_event_listener(this, type, handler)
   }
 
-  remove_event_listener(type: 'insert' | 'remove' | 'update', handler: Function) {
-    match(
-      type,
-      ['insert', () => this.insert_enqueue.filter(item => item !== handler)],
-      ['remove', () => this.remove_enqueue.filter(item => item !== handler)],
-      ['update', () => this.update_enqueue.filter(item => item !== handler)],
-      [Def, () => {}]
-    )()
+  /**
+  ## remove event listener
+  ### Example:
+  ```ts
+  const db = new DataBase('test')
+  const coll = db.create_collection('test', zod.string())
+  const handler = (value) => {
+    console.log(value)
+  }
+  coll.add_event_listener('insert', handler)
+  coll.remove_event_listener('insert', handler)
+  ```
+  */
+  remove_event_listener(type: CollEnqueueType, handler: Function) {
+    remove_event_listener(this, type, handler)
   }
 
+  /**
+  ## dispatch event
+  ### Example:
+  ```ts
+  const db = new DataBase('test')
+  const coll = db.create_collection('test', zod.string())
+  coll.dispatch('insert', {prefix: ['test', 'test', 'test'], value: 'test', timestamp: Date.now()})
+  ```
+   */
   dispatch(
-    type: 'insert' | 'remove' | 'update',
+    type: CollEnqueueType,
     value: CollDispatchVal<S>,
     option?: {
       delay?: number
     }
   ) {
-    option?.delay
-      ? setTimeout(
-          match(
-            type,
-            ['insert', () => this.insert_enqueue.forEach(item => item(value))],
-            ['remove', () => this.remove_enqueue.forEach(item => item(value))],
-            ['update', () => this.update_enqueue.forEach(item => item(value))],
-            [Def, () => {}]
-          ),
-          option.delay
-        )
-      : match(
-          type,
-          ['insert', () => this.insert_enqueue.forEach(item => item(value))],
-          ['remove', () => this.remove_enqueue.forEach(item => item(value))],
-          ['update', () => this.update_enqueue.forEach(item => item(value))],
-          [Def, () => {}]
-        )()
+    dispatch(this, type, value, option)
   }
 
   /** @operate */
@@ -134,7 +124,7 @@ export class Collection<D extends string, C extends string, S extends zod.Schema
   /** 
   @remove 移除数据
   @error UnknownError
-   */
+  */
   async remove(primary_key: string): AsyncResult<string, UnknownError> {
     const piefix: [string, string, string] = [this.db.name, this.name, primary_key]
     try {
@@ -149,7 +139,7 @@ export class Collection<D extends string, C extends string, S extends zod.Schema
   /** 
   @update 更新数据
   @error SchemaParseError | NoDataError 
-   */
+  */
   async update(
     primary_key: string,
     value: SchemaType<S>,
@@ -171,6 +161,7 @@ export class Collection<D extends string, C extends string, S extends zod.Schema
       return e
     }
   }
+
   //Todo 查
 
   /** find with primary_key , the simple way */
@@ -201,17 +192,4 @@ export class Collection<D extends string, C extends string, S extends zod.Schema
 
   /** can get value by Secondary index */
   get_value_by(key: keyof SchemaType<S>) {}
-
-  // /** find condition进行筛选 */
-  // async list_for(
-  //   condition: (item: SchemaType<S>) => boolean
-  // ): Promise<Array<{key: string; value: SchemaType<S>}>> {
-  //   const prefix = [this.db.name, this.name]
-  //   const list = this.db.kv.list({prefix: prefix})
-  //   const res: Array<{key: string; value: SchemaType<S>}> = []
-  //   for await (const item of list) {
-  //     if (condition(item.value)) res.push({key: String(item.key), value: item.value})
-  //   }
-  //   return res
-  // }
 }
